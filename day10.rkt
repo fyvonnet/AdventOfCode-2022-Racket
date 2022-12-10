@@ -25,6 +25,6 @@
 (let*
   ([input (call-with-input-file "inputs/day10" read-input)]
    [input-vec (list->vector input)])
-  (apply + (map (lambda (x) (* x (vector-ref input-vec (sub1 x)))) '(20 60 100 140 180 220)))
+  (displayln (apply + (map (lambda (x) (* x (vector-ref input-vec (sub1 x)))) '(20 60 100 140 180 220))))
   (solve-part-two input))
 
