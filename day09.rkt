@@ -1,39 +1,43 @@
 #lang racket
 
-(define (read-input port [coords (list '(0 0))])
+(define (read-input port [head-coord '(0 0)] [tail-coords (list '(0 0))])
   (let ([line (read-line port)])
     (if (eof-object? line)
-      (reverse coords)
+      (reverse tail-coords)
       (let
         ([move 
            (case (string-ref line 0)
              [(#\U) '( 0  1)] [(#\D) '( 0 -1)] [(#\L) '(-1  0)] [(#\R) '( 1  0)])]
          [steps (string->number (substring line 2))])
-        (let rec ([s steps] [cs coords])
+        (let rec ([s steps] [hc head-coord] [tcs tail-coords])
           (if (zero? s)
-            (read-input port cs)
-            (rec (sub1 s) (cons (map + (car cs) move) cs))))))))
-
-(define (get-tail-move rp)
-  (match rp
-    [(list x y)
-     (vector-ref
-       (vector '(99 99) '(-1 +1) '( 0 +1) '(+1 +1) '(99 99)
-               '(-1 +1) '( 0  0) '( 0  0) '( 0  0) '(+1 +1)
-               '(-1  0) '( 0  0) '( 0  0) '( 0  0) '(+1  0)
-               '(-1 -1) '( 0  0) '( 0  0) '( 0  0) '(+1 -1)
-               '(99 99) '(-1 -1) '( 0 -1) '(+1 -1) '(99 99))
-       (+ (* 5 (- 2 y)) (+ 2 x)))]))
+            (read-input port hc tcs)
+            (let ([new-hc (map + hc move)])
+              (rec (sub1 s) new-hc (cons (new-follower-coord new-hc (car tcs)) tcs)))))))))
 
 (define (new-follower-coord leader follower)
-  (let ([rel-pos (map - leader follower)])
-    (map + follower (get-tail-move rel-pos))))
+  (match (map - leader follower)
+    [(list x y)
+     (map
+       +
+       follower
+       (vector-ref
+         (vector '(-1 +1) '(-1 +1) '( 0 +1) '(+1 +1) '(+1 +1)
+                 '(-1 +1) '( 0  0) '( 0  0) '( 0  0) '(+1 +1)
+                 '(-1  0) '( 0  0) '( 0  0) '( 0  0) '(+1  0)
+                 '(-1 -1) '( 0  0) '( 0  0) '( 0  0) '(+1 -1)
+                 '(-1 -1) '(-1 -1) '( 0 -1) '(+1 -1) '(+1 -1))
+         (+ (* 5 (- 2 y)) (+ 2 x))))]))
 
-(let ([head-coords (call-with-input-file "inputs/day09" read-input)])
-  (for/fold
-    ([tail-coord '(0 0)]
-     [coords-set (set '(0 0))]
-     #:result (length (set->list coords-set)))
-    ([head-coord head-coords])
-    (let ([new-tail-coord (new-follower-coord head-coord tail-coord)])
-      (values new-tail-coord (set-add coords-set new-tail-coord)))))
+(define (solve-part-two coords [followers (make-list 8 '(0 0))] [set (set)])
+  (if (null? coords)
+    (set-count set)
+    (let rec ([new-fs (list (car coords))] [fs followers])
+      (if (null? fs)
+        (solve-part-two (cdr coords) (cdr (reverse new-fs)) (set-add set (car new-fs)))
+        (rec (cons (new-follower-coord (car new-fs) (car fs)) new-fs) (cdr fs))))))
+
+(let ([coords (call-with-input-file "inputs/day09" read-input)])
+  (displayln (set-count (list->set coords)))
+  (displayln (solve-part-two coords)))
+
