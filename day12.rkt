@@ -56,7 +56,13 @@
 
 (let-values
   ([(heightmap start end start-points) (call-with-input-file "inputs/day12" read-input)])
-  (let ([func (reach-end heightmap end)])
-    (displayln (func start))
-    (displayln (apply min (filter identity (map func start-points))))))
+  (let* 
+    ([func (reach-end heightmap end)]
+     [answer1 (func start)])
+    (displayln answer1)
+    (displayln
+      (foldl
+        (lambda (s m) (match (func s) [#f m] [n (min m n)]))
+        answer1
+        start-points))))
 
