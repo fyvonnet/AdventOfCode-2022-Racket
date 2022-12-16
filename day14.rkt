@@ -8,7 +8,7 @@
   (let ([line (read-line port)])
     (if (eof-object? line)
       (values paths (+ 2 row-max))
-      (let rec ([lst (map string->number (string-split line #px",| -> "))] [p '()] [rm row-max])
+      (let rec ([lst (map string->number (string-split line #px"\\D+"))] [p '()] [rm row-max])
         (match lst
           ['() (read-input port (cons p paths) rm)]
           [(list-rest col row rst) (rec rst (cons (list col row) p) (max row rm))])))))
