@@ -25,26 +25,22 @@
 (define (move path coord dir [n (car path)])
   (if (zero? n)
     (turn (cdr path) coord dir)
-    (move
-      path
-      (let*
-        ([adj-coord
-           (case dir
-             [(UP   ) (map + coord '( 0 -1))]
-             [(DOWN ) (map + coord '( 0  1))]
-             [(LEFT ) (map + coord '(-1  0))]
-             [(RIGHT) (map + coord '( 1  0))])]
-         [next-coord
-           (if (char=? (array-ref maze-map adj-coord) #\Space)
-             (hash-ref wrap-dest (list dir (case dir
-                                             [(UP DOWN)    (first  adj-coord)]
-                                             [(LEFT RIGHT) (second adj-coord)])))
-             adj-coord)])
-        (if (char=? (array-ref maze-map next-coord) #\#)
-          coord
-          next-coord))
-      dir
-      (sub1 n))))
+    (let*
+      ([adj-coord
+         (case dir
+           [(UP   ) (map + coord '( 0 -1))]
+           [(DOWN ) (map + coord '( 0  1))]
+           [(LEFT ) (map + coord '(-1  0))]
+           [(RIGHT) (map + coord '( 1  0))])]
+       [next-coord
+         (if (char=? (array-ref maze-map adj-coord) #\Space)
+           (hash-ref wrap-dest (list dir (case dir
+                                           [(UP DOWN)    (first  adj-coord)]
+                                           [(LEFT RIGHT) (second adj-coord)])))
+           adj-coord)])
+      (if (char=? (array-ref maze-map next-coord) #\#)
+        (turn (cdr path) coord dir)
+        (move path next-coord dir (sub1 n))))))
 
 (define (turn path coord dir)
   (if (null? path)
